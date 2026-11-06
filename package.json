@@ -1,0 +1,10 @@
+{
+  "name": "reverse-grants-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Project Reverse grants server + Discord bot (/give packs to players by Discord ID).",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "discord.js": "14.16.3" },
+  "engines": { "node": ">=18" }
+}
