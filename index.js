@@ -220,4 +220,9 @@ client.on('interactionCreate', async (i) => {
   }
 });
 
-registerCommands().then(() => client.login(TOKEN)).catch((e) => console.log('[bot] login error:', e.message));
+registerCommands().then(() => {
+  console.log('[bot] attempting login...');
+  return client.login(TOKEN);
+}).then(() => {
+  console.log('[bot] login successful');
+}).catch((e) => console.log('[bot] login error:', e.message, e.code || ''));
