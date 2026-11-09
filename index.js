@@ -180,6 +180,7 @@ client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.once('ready', async () => {
   console.log('[bot] logged in as', client.user.tag);
+  await registerCommands();
   await loadGrants();
 });
 
@@ -220,9 +221,5 @@ client.on('interactionCreate', async (i) => {
   }
 });
 
-registerCommands().then(() => {
-  console.log('[bot] attempting login...');
-  return client.login(TOKEN);
-}).then(() => {
-  console.log('[bot] login successful');
-}).catch((e) => console.log('[bot] login error:', e.message, e.code || ''));
+console.log('[bot] attempting login...');
+client.login(TOKEN).catch((e) => console.log('[bot] login error:', e.message, e.code || ''));
