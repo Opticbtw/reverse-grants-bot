@@ -138,6 +138,12 @@ if (SELF_URL) {
   console.log('[keepalive] pinging', SELF_URL + '/health', 'every 10 min');
 }
 
+// Log env var status so we can debug on Render
+console.log('[bot] DISCORD_TOKEN:', TOKEN ? 'SET (' + TOKEN.length + ' chars)' : 'MISSING');
+console.log('[bot] CLIENT_ID:', CLIENT_ID || 'MISSING');
+console.log('[bot] GUILD_ID:', GUILD_ID || 'not set');
+console.log('[bot] STORAGE_CHANNEL_ID:', STORAGE_CHANNEL_ID || 'not set');
+
 if (!TOKEN) { console.log('[bot] no DISCORD_TOKEN set; running HTTP only.'); return; }
 
 const commands = [
@@ -179,7 +185,9 @@ client.once('ready', async () => {
 
 client.on('interactionCreate', async (i) => {
   if (!i.isChatInputCommand()) return;
-  if (!isAdmin(i.member)) return i.reply({ content: 'You do not have permission to manage grants.', ephemeral: true });
+  // Defer immediately to get 15 minutes instead of 3 seconds
+  await i.deferReply({ ephemeral: true });
+  if (!isAdmin(i.member)) return i.editReply({ content: 'You do not have permission to manage grants.' });
   const u = i.options.getUser('user');
   const e = entry(u.id);
   if (i.commandName === 'give') {
@@ -187,13 +195,13 @@ client.on('interactionCreate', async (i) => {
     if (pack === 'Full Locker') { e.full = true; }
     else if (!e.packs.includes(pack)) e.packs.push(pack);
     await saveGrants();
-    return i.reply({ content: `Gave **${pack}** to ${u}. It applies next time they launch.`, allowedMentions: { parse: [] } });
+    return i.editReply({ content: `Gave **${pack}** to ${u}. It applies next time they launch.`, allowedMentions: { parse: [] } });
   }
   if (i.commandName === 'giveitem') {
     const id = i.options.getString('id').trim();
     if (!e.items.includes(id)) e.items.push(id);
     await saveGrants();
-    return i.reply({ content: `Gave \`${id}\` to ${u}.`, allowedMentions: { parse: [] } });
+    return i.editReply({ content: `Gave \`${id}\` to ${u}.`, allowedMentions: { parse: [] } });
   }
   if (i.commandName === 'remove') {
     const pack = i.options.getString('pack');
@@ -201,14 +209,14 @@ client.on('interactionCreate', async (i) => {
     else if (pack === 'Full Locker') { e.full = false; }
     else { e.packs = e.packs.filter((p) => p !== pack); }
     await saveGrants();
-    return i.reply({ content: pack ? `Removed **${pack}** from ${u}.` : `Cleared everything from ${u}.`, allowedMentions: { parse: [] } });
+    return i.editReply({ content: pack ? `Removed **${pack}** from ${u}.` : `Cleared everything from ${u}.`, allowedMentions: { parse: [] } });
   }
   if (i.commandName === 'locker') {
     const parts = [];
     if (e.full) parts.push('**Full Locker** (every item)');
     if (e.packs.length) parts.push('Packs: ' + e.packs.join(', '));
     if (e.items.length) parts.push('Items: ' + e.items.length);
-    return i.reply({ content: parts.length ? `${u} owns:\n` + parts.join('\n') : `${u} has no grants yet.`, allowedMentions: { parse: [] } });
+    return i.editReply({ content: parts.length ? `${u} owns:\n` + parts.join('\n') : `${u} has no grants yet.`, allowedMentions: { parse: [] } });
   }
 });
 
